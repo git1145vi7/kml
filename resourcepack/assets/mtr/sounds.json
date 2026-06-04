@@ -1,0 +1,58 @@
+{
+  "kml_motor0": {
+    "sounds": [
+      {
+        "attenuation_distance": 32,
+        "name": "mtr:kml/motor0"
+      }
+    ]
+  },
+  "kml_motor1": {
+    "sounds": [
+      {
+        "attenuation_distance": 32,
+        "name": "mtr:kml/motor1"
+      }
+    ]
+  },
+  "kml_motor2": {
+    "sounds": [
+      {
+        "attenuation_distance": 32,
+        "name": "mtr:kml/motor2"
+      }
+    ]
+  },
+  "kml_motor3": {
+    "sounds": [
+      {
+        "attenuation_distance": 32,
+        "name": "mtr:kml/motor3"
+      }
+    ]
+  },
+  "kml_motor4": {
+    "sounds": [
+      {
+        "attenuation_distance": 32,
+        "name": "mtr:kml/motor4"
+      }
+    ]
+  },
+  "kml_motor5": {
+    "sounds": [
+      {
+        "attenuation_distance": 32,
+        "name": "mtr:kml/motor5"
+      }
+    ]
+  },
+  "kml_motor6": {
+    "sounds": [
+      {
+        "attenuation_distance": 32,
+        "name": "mtr:kml/motor6"
+      }
+    ]
+  }
+}
