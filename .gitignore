@@ -2,4 +2,6 @@
 motor_sounds/*.ogg
 motor_sounds/*.wav
 motor_sounds/*.aup3
+motor_sounds/*.aup3-shm
+motor_sounds/*.aup3-wal
 motor_sounds/*.zip
