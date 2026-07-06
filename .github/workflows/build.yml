@@ -34,10 +34,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug script parameters (optional)
+        shell: pwsh
+        run: |
+          Write-Host "=== First 30 lines of build.ps1 ==="
+          Get-Content .\build.ps1 -Head 30
+
       - name: Run build script
         shell: pwsh
         run: |
-          # ... 您的构建参数逻辑（保持不变） ...
+          $cmd = ".\build.ps1"
+          
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            # 手动触发
+            $version = "${{ github.event.inputs.version }}"
+            if ($version -ne "") {
+              $cmd += " -v `"$version`""   # 如果实际是 -Version，请改为 -Version
+            }
+            $name = "${{ github.event.inputs.name }}"
+            if ($name -ne "") {
+              $cmd += " -n `"$name`""     # 如果实际是 -Name，请改为 -Name
+            }
+            $opt = "${{ github.event.inputs.optimize }}"
+            switch ($opt) {
+              "low"  { $cmd += " -l" }
+              "both" { $cmd += " -la" }
+              "none" { }   # 不加优化参数
+            }
+          } else {
+            # push 标签触发：默认 -la，版本从 tag 提取
+            $tag = "${{ github.ref_name }}"
+            if ($tag -match '^v(.+)$') {
+              $version = $Matches[1]
+              $cmd += " -v `"$version`""
+            }
+            $cmd += " -la"
+          }
+          
+          Write-Host "Executing: $cmd"
+          Invoke-Expression $cmd
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -47,12 +82,12 @@ jobs:
             *.zip
           if-no-files-found: error
 
-      - name: Create Release (draft)
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           name: "Release ${{ github.ref_name }}"
           tag_name: ${{ github.ref_name }}
-          draft: true          # 关键改动
+          draft: true
           generate_release_notes: true
           files: |
             *.zip
