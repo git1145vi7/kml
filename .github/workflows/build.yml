@@ -34,47 +34,66 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug script parameters (optional)
+      - name: Clean old zip files (optional)
         shell: pwsh
-        run: |
-          Write-Host "=== First 30 lines of build.ps1 ==="
-          Get-Content .\build.ps1 -Head 30
+        run: Remove-Item *.zip -ErrorAction SilentlyContinue
 
       - name: Run build script
         shell: pwsh
         run: |
-          $cmd = ".\build.ps1"
-          
+          # ... 您的构建参数逻辑（保持不变） ...
+          # 例如：
+          $params = @()
+          # 根据事件类型决定参数
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            # 手动触发
-            $version = "${{ github.event.inputs.version }}"
-            if ($version -ne "") {
-              $cmd += " -v `"$version`""   # 如果实际是 -Version，请改为 -Version
-            }
-            $name = "${{ github.event.inputs.name }}"
-            if ($name -ne "") {
-              $cmd += " -n `"$name`""     # 如果实际是 -Name，请改为 -Name
-            }
+            $v = "${{ github.event.inputs.version }}"
+            $n = "${{ github.event.inputs.name }}"
+            if ($v) { $params += "-v"; $params += $v }
+            if ($n) { $params += "-n"; $params += $n }
             $opt = "${{ github.event.inputs.optimize }}"
             switch ($opt) {
-              "low"  { $cmd += " -l" }
-              "both" { $cmd += " -la" }
-              "none" { }   # 不加优化参数
+              "low"  { $params += "-l" }
+              "both" { $params += "-la" }
+              "none" { }
             }
           } else {
-            # push 标签触发：默认 -la，版本从 tag 提取
+            # push tag: 从 tag 取版本，默认 -la
             $tag = "${{ github.ref_name }}"
-            if ($tag -match '^v(.+)$') {
-              $version = $Matches[1]
-              $cmd += " -v `"$version`""
-            }
-            $cmd += " -la"
+            if ($tag -match '^v(.+)$') { $params += "-v"; $params += $Matches[1] }
+            $params += "-la"
           }
-          
-          Write-Host "Executing: $cmd"
-          Invoke-Expression $cmd
+          Write-Host "Running: .\build.ps1 $($params -join ' ')"
+          & .\build.ps1 @params
 
-      - name: Upload artifacts
+      - name: Normalize zip filenames
+        shell: pwsh
+        run: |
+          $name = "${{ github.event.inputs.name }}"
+          $version = "${{ github.event.inputs.version }}"
+          if (-not $name) { $name = "ResourcePack" }
+          if (-not $version) {
+            $tag = "${{ github.ref_name }}"
+            if ($tag -match '^v(.+)$') { $version = $Matches[1] }
+            else { $version = (Get-Date -Format "yyyyMMdd-HHmmss") }
+          }
+          $base = "${name}_v${version}"
+          Write-Host "Expected base: $base"
+          $zips = Get-ChildItem *.zip
+          if ($zips.Count -eq 0) { Write-Error "No zip files found!"; exit 1 }
+          foreach ($zip in $zips) {
+            if ($zip.Name -notmatch [regex]::Escape($base)) {
+              if ($zip.Name -match "Optimized") {
+                $newName = "${base}-Optimized.zip"
+              } else {
+                $newName = "${base}.zip"
+              }
+              Move-Item $zip.FullName -Destination $newName -Force
+              Write-Host "Renamed $($zip.Name) -> $newName"
+            }
+          }
+          Get-ChildItem *.zip | ForEach-Object { Write-Host "Final: $($_.Name)" }
+
+      - name: Upload artifacts (optional, for debugging)
         uses: actions/upload-artifact@v4
         with:
           name: resource-pack
@@ -82,7 +101,7 @@ jobs:
             *.zip
           if-no-files-found: error
 
-      - name: Create Release
+      - name: Create Release (draft)
         uses: softprops/action-gh-release@v2
         with:
           name: "Release ${{ github.ref_name }}"
