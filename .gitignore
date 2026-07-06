@@ -1,4 +1,5 @@
 *.lnk
+/*.zip
 motor_sounds/*.ogg
 motor_sounds/*.wav
 motor_sounds/*.aup3
