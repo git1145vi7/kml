@@ -1,0 +1,103 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., 1.0, 1.1-Pre)'
+        required: false
+        default: ''
+      name:
+        description: 'Custom pack name (supports Unicode)'
+        required: false
+        default: ''
+      optimize:
+        description: 'Optimization mode'
+        required: false
+        default: 'both'        # 默认启用 -la
+        type: choice
+        options:
+          - both
+          - low
+          - none
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run build script
+        shell: pwsh
+        run: |
+          $params = @()
+
+          # 默认添加 -la
+          $params += "-la"
+
+          # 处理版本号：优先使用手动输入，其次从 tag 提取
+          $version = ""
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } elseif ("${{ github.event_name }}" -eq "push" -and "${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+            if ($tag -match '^v(.+)$') {
+              $version = $Matches[1]
+            }
+          }
+
+          if ($version -ne "") {
+            $params += "-v"
+            $params += $version
+          }
+
+          # 处理包名（仅手动输入）
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $name = "${{ github.event.inputs.name }}"
+            if ($name -ne "") {
+              $params += "-n"
+              $params += $name
+            }
+
+            # 处理优化选项（覆盖默认 -la）
+            $opt = "${{ github.event.inputs.optimize }}"
+            # 移除之前添加的 -la（如果有）
+            $params = $params | Where-Object { $_ -ne "-la" }
+            switch ($opt) {
+              "low"   { $params += "-l" }
+              "both"  { $params += "-la" }
+              "none"  { }   # 不加任何优化参数
+            }
+          }
+
+          # 调试：打印参数
+          Write-Host "Running: .\build.ps1 $($params -join ' ')"
+          & .\build.ps1 @params
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: resource-pack
+          path: |
+            *.zip
+          if-no-files-found: error
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Release ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            *.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
