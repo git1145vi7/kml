@@ -17,7 +17,7 @@ on:
       optimize:
         description: 'Optimization mode'
         required: false
-        default: 'both'        # 默认启用 -la
+        default: 'both'
         type: choice
         options:
           - both
@@ -34,52 +34,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug script parameters (optional)
+        shell: pwsh
+        run: |
+          Write-Host "=== First 30 lines of build.ps1 ==="
+          Get-Content .\build.ps1 -Head 30
+
       - name: Run build script
         shell: pwsh
         run: |
-          $params = @()
-
-          # 默认添加 -la
-          $params += "-la"
-
-          # 处理版本号：优先使用手动输入，其次从 tag 提取
-          $version = ""
+          $cmd = ".\build.ps1"
+          
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            # 手动触发
             $version = "${{ github.event.inputs.version }}"
-          } elseif ("${{ github.event_name }}" -eq "push" -and "${{ github.ref_type }}" -eq "tag") {
+            if ($version -ne "") {
+              $cmd += " -v `"$version`""   # 如果实际是 -Version，请改为 -Version
+            }
+            $name = "${{ github.event.inputs.name }}"
+            if ($name -ne "") {
+              $cmd += " -n `"$name`""     # 如果实际是 -Name，请改为 -Name
+            }
+            $opt = "${{ github.event.inputs.optimize }}"
+            switch ($opt) {
+              "low"  { $cmd += " -l" }
+              "both" { $cmd += " -la" }
+              "none" { }   # 不加优化参数
+            }
+          } else {
+            # push 标签触发：默认 -la，版本从 tag 提取
             $tag = "${{ github.ref_name }}"
             if ($tag -match '^v(.+)$') {
               $version = $Matches[1]
+              $cmd += " -v `"$version`""
             }
+            $cmd += " -la"
           }
-
-          if ($version -ne "") {
-            $params += "-v"
-            $params += $version
-          }
-
-          # 处理包名（仅手动输入）
-          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            $name = "${{ github.event.inputs.name }}"
-            if ($name -ne "") {
-              $params += "-n"
-              $params += $name
-            }
-
-            # 处理优化选项（覆盖默认 -la）
-            $opt = "${{ github.event.inputs.optimize }}"
-            # 移除之前添加的 -la（如果有）
-            $params = $params | Where-Object { $_ -ne "-la" }
-            switch ($opt) {
-              "low"   { $params += "-l" }
-              "both"  { $params += "-la" }
-              "none"  { }   # 不加任何优化参数
-            }
-          }
-
-          # 调试：打印参数
-          Write-Host "Running: .\build.ps1 $($params -join ' ')"
-          & .\build.ps1 @params
+          
+          Write-Host "Executing: $cmd"
+          Invoke-Expression $cmd
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
