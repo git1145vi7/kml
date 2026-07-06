@@ -3,21 +3,21 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., 1.0, 1.1-Pre)'
+        description: "Version tag (e.g., 1.0, 1.1-Pre)"
         required: false
-        default: ''
+        default: ""
       name:
-        description: 'Custom pack name (supports Unicode)'
+        description: "Custom pack name (supports Unicode)"
         required: false
-        default: ''
+        default: ""
       optimize:
-        description: 'Optimization mode'
+        description: "Optimization mode"
         required: false
-        default: 'both'
+        default: "both"
         type: choice
         options:
           - both
@@ -41,28 +41,43 @@ jobs:
       - name: Run build script
         shell: pwsh
         run: |
-          # ... 您的构建参数逻辑（保持不变） ...
-          # 例如：
-          $params = @()
-          # 根据事件类型决定参数
+          $params = @{}
+
+          # 处理版本号
+          $version = ""
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            $v = "${{ github.event.inputs.version }}"
-            $n = "${{ github.event.inputs.name }}"
-            if ($v) { $params += "-v"; $params += $v }
-            if ($n) { $params += "-n"; $params += $n }
-            $opt = "${{ github.event.inputs.optimize }}"
-            switch ($opt) {
-              "low"  { $params += "-l" }
-              "both" { $params += "-la" }
-              "none" { }
-            }
-          } else {
-            # push tag: 从 tag 取版本，默认 -la
+            $version = "${{ github.event.inputs.version }}"
+          } elseif ("${{ github.event_name }}" -eq "push" -and "${{ github.ref_type }}" -eq "tag") {
             $tag = "${{ github.ref_name }}"
-            if ($tag -match '^v(.+)$') { $params += "-v"; $params += $Matches[1] }
-            $params += "-la"
+            if ($tag -match '^v(.+)$') { $version = $Matches[1] }
           }
-          Write-Host "Running: .\build.ps1 $($params -join ' ')"
+          if ($version -ne "") {
+            $params['v'] = $version
+          }
+
+          # 处理包名（仅手动触发）
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $name = "${{ github.event.inputs.name }}"
+            if ($name -ne "") {
+              $params['n'] = $name   # 中文直接传入，Splatting 保留 Unicode
+            }
+            
+            # 优化选项
+            $opt = "${{ github.event.inputs.optimize }}"
+            if ($opt -eq "low") {
+              $params['l'] = $true
+            } elseif ($opt -eq "both") {
+              $params['la'] = $true
+            }
+            # none: 不加优化参数
+          } else {
+            # push 标签触发：默认 -la
+            $params['la'] = $true
+          }
+
+          Write-Host "Calling .\build.ps1 with parameters:"
+          $params | Format-Table -AutoSize
+
           & .\build.ps1 @params
 
       - name: Normalize zip filenames
