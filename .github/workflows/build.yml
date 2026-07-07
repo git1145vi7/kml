@@ -123,7 +123,14 @@ jobs:
 
         Write-Host "Release tag: $tag"
 
-
+    - name: List all zip files before release
+      shell: pwsh
+      run: |
+        Write-Host "=== All zip files in workspace ==="
+        Get-ChildItem *.zip | ForEach-Object {
+          Write-Host "  $($_.Name)  (Size: $($_.Length) bytes)"
+        }
+        Write-Host "=================================="
 
     - name: Create Draft Release
       uses: softprops/action-gh-release@v2
