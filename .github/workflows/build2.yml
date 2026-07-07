@@ -48,6 +48,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Check build script
+      shell: pwsh
+      run: |
+        Get-Content ./build.ps1 -First 30
+
 
 
     # --------------------------
