@@ -1,4 +1,4 @@
-name: Build Resource Pack
+name: Build and Release
 
 on:
   workflow_dispatch:
@@ -140,6 +140,8 @@ jobs:
         draft: true
 
         generate_release_notes: true
+
+        replace_assets: true
 
         files: |
           *.zip
