@@ -6,26 +6,24 @@ on:
 
       mode:
         name: Build mode
-        description: Select build mode
+        description: "normal / low / both"
         required: true
-        default: la
+        default: "both"
         type: choice
         options:
           - normal
-          - l
-          - la
-
+          - low
+          - both
 
       name:
         name: Package name
-        description: Custom name (-n)
+        description: "Same as build.ps1 -n"
         required: false
         default: ""
 
-
       version:
         name: Version
-        description: Version number (-v)
+        description: "Same as build.ps1 -v"
         required: false
         default: ""
 
@@ -42,112 +40,75 @@ jobs:
 
     steps:
 
-    # --------------------------
-    # Checkout
-    # --------------------------
-    - name: Checkout repository
+
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Check build script
+
+    - name: Clean old zip
       shell: pwsh
       run: |
-        Get-Content ./build.ps1 -First 30
+        Remove-Item *.zip -Force -ErrorAction SilentlyContinue
 
 
-
-    # --------------------------
-    # Build
-    # --------------------------
     - name: Run build.ps1
       shell: pwsh
       run: |
 
-        $argsList = @()
+        $params = @{}
 
 
         switch ("${{ inputs.mode }}") {
 
-          "l" {
-            $argsList += "-l"
+          "low" {
+            $params["l"] = $true
           }
 
-
-          "la" {
-            $argsList += "-la"
+          "both" {
+            $params["la"] = $true
           }
 
-
-          default {
-            # normal build
-          }
         }
-
 
 
         if ("${{ inputs.name }}" -ne "") {
-
-          $argsList += "-n:$('${{ inputs.name }}')"
+          $params["n"] = "${{ inputs.name }}"
         }
-
 
 
         if ("${{ inputs.version }}" -ne "") {
-
-          $argsList += "-v:$('${{ inputs.version }}')"
+          $params["v"] = "${{ inputs.version }}"
         }
 
 
-
-        Write-Host "Executing:"
-        Write-Host "./build.ps1 $($argsList -join ' ')"
-
+        Write-Host "Build parameters:"
+        $params | Format-Table
 
 
-        ./build.ps1 @argsList
+        .\build.ps1 @params
 
 
 
-    # --------------------------
-    # Collect zip files
-    # --------------------------
-    - name: Collect packages
-      id: package
+    - name: Check packages
       shell: pwsh
       run: |
 
+        $zips = Get-ChildItem *.zip
 
-        $files = Get-ChildItem `
-          -Filter "*.zip" `
-          -File
+        if ($zips.Count -eq 0) {
+          throw "No zip generated."
+        }
 
-
-
-        if ($files.Count -eq 0) {
-
-          throw "No zip package found."
+        $zips | ForEach-Object {
+          Write-Host $_.Name
         }
 
 
 
-        Write-Host "Packages:"
-        $files | ForEach-Object {
-          Write-Host $_.FullName
-        }
-
-
-
-        echo "count=$($files.Count)" >> $env:GITHUB_OUTPUT
-
-
-
-    # --------------------------
-    # Generate tag
-    # --------------------------
     - name: Generate release tag
       id: tag
       shell: pwsh
       run: |
-
 
         if ("${{ inputs.version }}" -ne "") {
 
@@ -161,18 +122,12 @@ jobs:
         }
 
 
+        echo "tag=$tag" >> $env:GITHUB_OUTPUT
 
         Write-Host "Release tag: $tag"
 
 
 
-        echo "tag=$tag" >> $env:GITHUB_OUTPUT
-
-
-
-    # --------------------------
-    # Create draft release
-    # --------------------------
     - name: Create Draft Release
       uses: softprops/action-gh-release@v2
 
@@ -183,6 +138,8 @@ jobs:
         name: ${{ steps.tag.outputs.tag }}
 
         draft: true
+
+        generate_release_notes: true
 
         files: |
           *.zip
