@@ -61,19 +61,26 @@ jobs:
           "both" { $params["la"] = $true }
         }
 
-        # ---------- 关键修改：清理 name ----------
+        # ---------- 严格清理 name ----------
         $rawName = "${{ inputs.name }}"
-        $cleanName = ($rawName -replace "`r|`n", "").Trim()
+        $cleanName = ($rawName -replace "[\r\n]", "").Trim()
         if ($cleanName -ne "") {
           $params["n"] = $cleanName
+          Write-Host "Name set to: '$cleanName'"
+        } else {
+          Write-Host "Name is empty after trimming."
         }
 
-        if ("${{ inputs.version }}" -ne "") {
-          $params["v"] = "${{ inputs.version }}"
+        # ---------- 同样清理 version ----------
+        $rawVersion = "${{ inputs.version }}"
+        $cleanVersion = ($rawVersion -replace "[\r\n]", "").Trim()
+        if ($cleanVersion -ne "") {
+          $params["v"] = $cleanVersion
+          Write-Host "Version set to: '$cleanVersion'"
         }
 
-        Write-Host "Build parameters:"
-        $params | Format-Table
+        Write-Host "Final parameters:"
+        $params | Format-Table -AutoSize
 
         .\build.ps1 @params
 
@@ -131,7 +138,7 @@ jobs:
 
         generate_release_notes: true
 
-        replace_assets: true
+        overwrite_files: true
 
         files: |
           *.zip
