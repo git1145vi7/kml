@@ -88,7 +88,6 @@ jobs:
       - name: Create Release (unique tag for manual runs)
         uses: softprops/action-gh-release@v2
         with:
-          # 手动触发：用输入版本+构建号生成唯一tag；推送标签则直接用原tag
           tag_name: ${{ 
             github.event_name == 'workflow_dispatch' && 
             format('v{0}-build.{1}', github.event.inputs.version, github.run_number) || 
