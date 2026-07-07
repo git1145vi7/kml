@@ -1,0 +1,190 @@
+name: Build Resource Pack
+
+on:
+  workflow_dispatch:
+    inputs:
+
+      mode:
+        name: Build mode
+        description: Select build mode
+        required: true
+        default: la
+        type: choice
+        options:
+          - normal
+          - l
+          - la
+
+
+      name:
+        name: Package name
+        description: Custom name (-n)
+        required: false
+        default: ""
+
+
+      version:
+        name: Version
+        description: Version number (-v)
+        required: false
+        default: ""
+
+
+jobs:
+
+  build:
+
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+
+    steps:
+
+    # --------------------------
+    # Checkout
+    # --------------------------
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+
+
+    # --------------------------
+    # Build
+    # --------------------------
+    - name: Run build.ps1
+      shell: pwsh
+      run: |
+
+        $argsList = @()
+
+
+        switch ("${{ inputs.mode }}") {
+
+          "l" {
+            $argsList += "-l"
+          }
+
+
+          "la" {
+            $argsList += "-la"
+          }
+
+
+          default {
+            # normal build
+          }
+        }
+
+
+
+        if ("${{ inputs.name }}" -ne "") {
+
+          $argsList += "-n"
+          $argsList += "${{ inputs.name }}"
+        }
+
+
+
+        if ("${{ inputs.version }}" -ne "") {
+
+          $argsList += "-v"
+          $argsList += "${{ inputs.version }}"
+        }
+
+
+
+        Write-Host "Executing:"
+        Write-Host "./build.ps1 $($argsList -join ' ')"
+
+
+
+        ./build.ps1 @argsList
+
+
+
+    # --------------------------
+    # Collect zip files
+    # --------------------------
+    - name: Collect packages
+      id: package
+      shell: pwsh
+      run: |
+
+
+        $files = Get-ChildItem `
+          -Filter "*.zip" `
+          -File
+
+
+
+        if ($files.Count -eq 0) {
+
+          throw "No zip package found."
+        }
+
+
+
+        Write-Host "Packages:"
+        $files | ForEach-Object {
+          Write-Host $_.FullName
+        }
+
+
+
+        echo "count=$($files.Count)" >> $env:GITHUB_OUTPUT
+
+
+
+    # --------------------------
+    # Generate tag
+    # --------------------------
+    - name: Generate release tag
+      id: tag
+      shell: pwsh
+      run: |
+
+
+        if ("${{ inputs.version }}" -ne "") {
+
+          $tag = "v${{ inputs.version }}"
+
+        }
+        else {
+
+          $tag = "build-" + (Get-Date -Format "yyyyMMdd-HHmmss")
+
+        }
+
+
+
+        Write-Host "Release tag: $tag"
+
+
+
+        echo "tag=$tag" >> $env:GITHUB_OUTPUT
+
+
+
+    # --------------------------
+    # Create draft release
+    # --------------------------
+    - name: Create Draft Release
+      uses: softprops/action-gh-release@v2
+
+      with:
+
+        tag_name: ${{ steps.tag.outputs.tag }}
+
+        name: ${{ steps.tag.outputs.tag }}
+
+        draft: true
+
+        files: |
+          *.zip
+
+
+      env:
+
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
