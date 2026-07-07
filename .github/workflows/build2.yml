@@ -81,16 +81,14 @@ jobs:
 
         if ("${{ inputs.name }}" -ne "") {
 
-          $argsList += "-n"
-          $argsList += "${{ inputs.name }}"
+          $argsList += "-n:$('${{ inputs.name }}')"
         }
 
 
 
         if ("${{ inputs.version }}" -ne "") {
 
-          $argsList += "-v"
-          $argsList += "${{ inputs.version }}"
+          $argsList += "-v:$('${{ inputs.version }}')"
         }
 
 
