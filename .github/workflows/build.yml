@@ -54,36 +54,26 @@ jobs:
     - name: Run build.ps1
       shell: pwsh
       run: |
-
         $params = @{}
 
-
         switch ("${{ inputs.mode }}") {
-
-          "low" {
-            $params["l"] = $true
-          }
-
-          "both" {
-            $params["la"] = $true
-          }
-
+          "low"  { $params["l"] = $true }
+          "both" { $params["la"] = $true }
         }
 
-
-        if ("${{ inputs.name }}" -ne "") {
-          $params["n"] = "${{ inputs.name }}"
+        # ---------- 关键修改：清理 name ----------
+        $rawName = "${{ inputs.name }}"
+        $cleanName = ($rawName -replace "`r|`n", "").Trim()
+        if ($cleanName -ne "") {
+          $params["n"] = $cleanName
         }
-
 
         if ("${{ inputs.version }}" -ne "") {
           $params["v"] = "${{ inputs.version }}"
         }
 
-
         Write-Host "Build parameters:"
         $params | Format-Table
-
 
         .\build.ps1 @params
 
