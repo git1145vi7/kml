@@ -15,7 +15,7 @@ param(
 # =========================
 function Show-Help {
 @"
-MC ResourcePack Build CLI (Cross-platform)
+kml MTR mod ResourcePack Build CLI
 
 USAGE:
     pwsh build.ps1 [command] [options]
@@ -34,6 +34,7 @@ OPTIONS:
 NOTES:
     - Cross-platform (Windows / Linux / macOS)
     - Requires PowerShell 7+
+    - All scripts are written by AI, so some of the content might not be accurate
 
 "@ | Write-Host
 }
