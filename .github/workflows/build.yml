@@ -54,33 +54,36 @@ jobs:
     - name: Run build.ps1
       shell: pwsh
       run: |
+
         $params = @{}
 
+
         switch ("${{ inputs.mode }}") {
-          "low"  { $params["l"] = $true }
-          "both" { $params["la"] = $true }
+
+          "low" {
+            $params["l"] = $true
+          }
+
+          "both" {
+            $params["la"] = $true
+          }
+
         }
 
-        # ---------- 严格清理 name ----------
-        $rawName = "${{ inputs.name }}"
-        $cleanName = ($rawName -replace "[\r\n]", "").Trim()
-        if ($cleanName -ne "") {
-          $params["n"] = $cleanName
-          Write-Host "Name set to: '$cleanName'"
-        } else {
-          Write-Host "Name is empty after trimming."
+
+        if ("${{ inputs.name }}" -ne "") {
+          $params["n"] = "${{ inputs.name }}"
         }
 
-        # ---------- 同样清理 version ----------
-        $rawVersion = "${{ inputs.version }}"
-        $cleanVersion = ($rawVersion -replace "[\r\n]", "").Trim()
-        if ($cleanVersion -ne "") {
-          $params["v"] = $cleanVersion
-          Write-Host "Version set to: '$cleanVersion'"
+
+        if ("${{ inputs.version }}" -ne "") {
+          $params["v"] = "${{ inputs.version }}"
         }
 
-        Write-Host "Final parameters:"
-        $params | Format-Table -AutoSize
+
+        Write-Host "Build parameters:"
+        $params | Format-Table
+
 
         .\build.ps1 @params
 
@@ -123,14 +126,7 @@ jobs:
 
         Write-Host "Release tag: $tag"
 
-    - name: List all zip files before release
-      shell: pwsh
-      run: |
-        Write-Host "=== All zip files in workspace ==="
-        Get-ChildItem *.zip | ForEach-Object {
-          Write-Host "  $($_.Name)  (Size: $($_.Length) bytes)"
-        }
-        Write-Host "=================================="
+
 
     - name: Create Draft Release
       uses: softprops/action-gh-release@v2
@@ -144,8 +140,6 @@ jobs:
         draft: true
 
         generate_release_notes: true
-
-        overwrite_files: true
 
         files: |
           *.zip
