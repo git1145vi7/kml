@@ -114,4 +114,4 @@ $model.elements = $model.elements | Where-Object { $elementSet.ContainsKey($_.uu
 
 # 序列化并保存输出 JSON
 $model | ConvertTo-Json -Depth 100 -Compress | Set-Content -LiteralPath $OutputPath -Encoding UTF8
-Write-Host "Done. 保存到 $OutputPath 完成。"
+Write-Host "Successfully created the low-poly model."

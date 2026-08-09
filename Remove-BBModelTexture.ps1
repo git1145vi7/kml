@@ -94,4 +94,4 @@ $newContent =
     $newContent
 )
 
-Write-Host "Done."
+Write-Host "Successfully removed the texture inside the bbmodel."

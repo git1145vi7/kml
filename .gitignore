@@ -1,8 +1,15 @@
 *.lnk
-/*.zip
+*.zip
 motor_sounds/*.ogg
 motor_sounds/*.wav
 motor_sounds/*.aup3
 motor_sounds/*.aup3-shm
 motor_sounds/*.aup3-wal
-motor_sounds/*.zip
+!motor_sounds/kml-MTR.zip
+!motor_sounds/loop.ogg
+!motor_sounds/opdr.ogg
+!motor_sounds/clsdr.ogg
+resourcepack/assets/mtr/sounds
+resourcepack/assets/mtr/kmlr.bbmodel
+resourcepack/assets/mtr/kmllcdstr.bbmodel
+resourcepack/pack.mcmeta
