@@ -1,4 +1,4 @@
-# Set root directory to script location
+﻿# Set root directory to script location
 $root = $PSScriptRoot
 if (-not $root) { $root = Get-Location }
 
@@ -62,7 +62,7 @@ if ($missingOgg) {
     Write-Host "Some .ogg files are missing, but continuing." -ForegroundColor Yellow
 }
 
-# 6. Modify sounds.json (located in assets\mtr) �C add three new entries
+# 6. Modify sounds.json (located in assets\mtr) ¨C add three new entries
 $jsonPath = Join-Path $assetsMtr "sounds.json"
 if (Test-Path $jsonPath) {
     Write-Host "Updating sounds.json ..."

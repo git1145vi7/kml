@@ -1,19 +1,19 @@
-param(
+ï»¿param(
     [Parameter(Mandatory=$true)] [string]$InputPath,
     [Parameter(Mandatory=$true)] [string]$OutputPath
 )
 
-# ¶ÁÈ¡ bbmodel JSON
+# è¯»å– bbmodel JSON
 $model = Get-Content -LiteralPath $InputPath -Raw | ConvertFrom-Json
 
-# ½¨Á¢ name->uuid ºÍ uuid->name Ó³Éä
+# å»ºç«‹ name->uuid å’Œ uuid->name æ˜ å°„
 $nameToUuid = @{}; $uuidToName = @{}
 foreach ($g in $model.groups) {
     $nameToUuid[$g.name] = $g.uuid
     $uuidToName[$g.uuid] = $g.name
 }
 
-# ½¨Á¢ uuid->½Úµã ¶ÔÏóÓ³Éä
+# å»ºç«‹ uuid->èŠ‚ç‚¹ å¯¹è±¡æ˜ å°„
 $uuidToNode = @{}
 function Register-Nodes {
     param($node)
@@ -26,7 +26,7 @@ function Register-Nodes {
 }
 foreach ($root in $model.outliner) { Register-Nodes $root }
 
-# ÊÕ¼¯ËùÓĞÔªËØµÄ UUID£¨model.elements ÖĞ£©
+# æ”¶é›†æ‰€æœ‰å…ƒç´ çš„ UUIDï¼ˆmodel.elements ä¸­ï¼‰
 $elementSet = @{}
 if ($model.elements) {
     foreach ($e in $model.elements) {
@@ -34,7 +34,7 @@ if ($model.elements) {
     }
 }
 
-# µİ¹éÊÕ¼¯½Úµã¼°Æäºó´úµÄËùÓĞ UUID
+# é€’å½’æ”¶é›†èŠ‚ç‚¹åŠå…¶åä»£çš„æ‰€æœ‰ UUID
 function Collect-All {
     param($node)
     $set = @()
@@ -51,7 +51,7 @@ function Collect-All {
     return $set
 }
 
-# É¾³ı _handrail* ½Úµã
+# åˆ é™¤ _handrail* èŠ‚ç‚¹
 $cleanGroups = @(
     "body_inter","head_inter","end_inter",
     "end_inter_seat","end_inter_accessible","end_inter_accessible_box"
@@ -68,12 +68,12 @@ foreach ($groupName in $cleanGroups) {
         }
         $childName = $uuidToName[$c.uuid]
         if ($childName -match '^_handrail') {
-            # ÊÕ¼¯²¢É¾³ı´Ë½ÚµãºÍÆäºó´úÖĞµÄËùÓĞÔªËØ UUID
+            # æ”¶é›†å¹¶åˆ é™¤æ­¤èŠ‚ç‚¹å’Œå…¶åä»£ä¸­çš„æ‰€æœ‰å…ƒç´  UUID
             $all = Collect-All $c
             foreach ($id in $all) {
                 if ($elementSet.ContainsKey($id)) { $elementSet.Remove($id) }
             }
-            # ²»½«´Ë½Úµã¼ÓÈë newChildren£¬¼´É¾³ı¸Ã×é½Úµã
+            # ä¸å°†æ­¤èŠ‚ç‚¹åŠ å…¥ newChildrenï¼Œå³åˆ é™¤è¯¥ç»„èŠ‚ç‚¹
             continue
         }
         $newChildren += $c
@@ -81,7 +81,7 @@ foreach ($groupName in $cleanGroups) {
     $node.children = $newChildren
 }
 
-# ½« _low_handr ÏÂµÄÖ¸¶¨×Ó×éÒÆ¶¯µ½¶ÔÓ¦µÄ _inter ×é
+# å°† _low_handr ä¸‹çš„æŒ‡å®šå­ç»„ç§»åŠ¨åˆ°å¯¹åº”çš„ _inter ç»„
 $moveMap = @{
     "_body" = "body_inter";      "_head" = "head_inter";
     "_end"  = "end_inter";       "_end_seat" = "end_inter_seat";
@@ -96,7 +96,7 @@ foreach ($pair in $moveMap.GetEnumerator()) {
     }
     $srcUuid = $nameToUuid[$srcName]
     $dstNode = $uuidToNode[$nameToUuid[$dstGroup]]
-    # ÔÚ _low_handr ×Ó½ÚµãÖĞÕÒµ½Æ¥ÅäµÄ×é½Úµã
+    # åœ¨ _low_handr å­èŠ‚ç‚¹ä¸­æ‰¾åˆ°åŒ¹é…çš„ç»„èŠ‚ç‚¹
     $srcNode = $null
     foreach ($c in $low.children) {
         if ($c -isnot [string] -and $c.uuid -eq $srcUuid) {
@@ -104,14 +104,14 @@ foreach ($pair in $moveMap.GetEnumerator()) {
         }
     }
     if ($null -eq $srcNode) { continue }
-    # ¼ôÇĞ£º´Ó _low_handr ÒÆ³ı£¬²¢Ìí¼Óµ½Ä¿±ê×é
+    # å‰ªåˆ‡ï¼šä» _low_handr ç§»é™¤ï¼Œå¹¶æ·»åŠ åˆ°ç›®æ ‡ç»„
     $low.children = @($low.children | Where-Object { ($_ -is [string]) -or ($_.uuid -ne $srcUuid) })
     $dstNode.children += $srcNode
 }
 
-# ½«Ê£ÓàµÄÔªËØ¼¯ºÏĞ´»Ø model.elements
+# å°†å‰©ä½™çš„å…ƒç´ é›†åˆå†™å› model.elements
 $model.elements = $model.elements | Where-Object { $elementSet.ContainsKey($_.uuid) }
 
-# ĞòÁĞ»¯²¢±£´æÊä³ö JSON
+# åºåˆ—åŒ–å¹¶ä¿å­˜è¾“å‡º JSON
 $model | ConvertTo-Json -Depth 100 -Compress | Set-Content -LiteralPath $OutputPath -Encoding UTF8
 Write-Host "Successfully created the low-poly model."

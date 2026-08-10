@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     kml MTR mod ResourcePack Build CLI
 .DESCRIPTION

@@ -1,4 +1,4 @@
-param(
+ï»¿param(
     [Parameter(Mandatory = $true)]
     [string]$InputPath,
 
@@ -11,7 +11,7 @@ param(
 
 $content = [System.IO.File]::ReadAllText($InputPath)
 
-# ÕÒ textures Êı×é
+# æ‰¾ textures æ•°ç»„
 $texturesPos = $content.IndexOf('"textures":[')
 
 if ($texturesPos -lt 0)
@@ -19,9 +19,9 @@ if ($texturesPos -lt 0)
     throw "textures array not found"
 }
 
-$arrayStart = $texturesPos + 11  # Ö¸Ïò [
+$arrayStart = $texturesPos + 11  # æŒ‡å‘ [
 
-# ÕÒ textures Êı×é½áÊø ]
+# æ‰¾ textures æ•°ç»„ç»“æŸ ]
 $arrayEnd = $content.IndexOf(']', $arrayStart)
 
 if ($arrayEnd -lt 0)
@@ -29,7 +29,7 @@ if ($arrayEnd -lt 0)
     throw "textures array end not found"
 }
 
-# Ö»ÔÚ textures ·¶Î§ÄÚËÑË÷
+# åªåœ¨ textures èŒƒå›´å†…æœç´¢
 $namePattern = '"name":"' + $TextureName + '"'
 
 $namePos = $content.IndexOf(
@@ -45,7 +45,7 @@ if ($namePos -lt 0)
     exit
 }
 
-# ÏòÇ°ÕÒ¶ÔÏóÆğÊ¼ {
+# å‘å‰æ‰¾å¯¹è±¡èµ·å§‹ {
 $objStart = $content.LastIndexOf('{', $namePos)
 
 if ($objStart -lt 0)
@@ -53,7 +53,7 @@ if ($objStart -lt 0)
     throw "object start not found"
 }
 
-# ÏòºóÕÒ¶ÔÏó½áÊø }
+# å‘åæ‰¾å¯¹è±¡ç»“æŸ }
 $objEnd = $content.IndexOf('}', $namePos)
 
 if ($objEnd -lt 0)
@@ -64,8 +64,8 @@ if ($objEnd -lt 0)
 $removeStart = $objStart
 $removeEnd = $objEnd
 
-# ´¦ÀíÖĞ¼äÔªËØ£º
-# {...},{Ä¿±ê},{...}
+# å¤„ç†ä¸­é—´å…ƒç´ ï¼š
+# {...},{ç›®æ ‡},{...}
 if (
     $removeEnd + 1 -lt $content.Length -and
     $content[$removeEnd + 1] -eq ','
@@ -73,8 +73,8 @@ if (
 {
     $removeEnd++
 }
-# ´¦ÀíÄ©Î²ÔªËØ£º
-# {...},{Ä¿±ê}
+# å¤„ç†æœ«å°¾å…ƒç´ ï¼š
+# {...},{ç›®æ ‡}
 elseif (
     $removeStart -gt 0 -and
     $content[$removeStart - 1] -eq ','
