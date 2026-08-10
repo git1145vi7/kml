@@ -1,10 +1,12 @@
 *.lnk
 *.zip
-motor_sounds/*.ogg
-motor_sounds/*.wav
-motor_sounds/*.aup3
-motor_sounds/*.aup3-shm
-motor_sounds/*.aup3-wal
+*.ps1
+!AddSounds.ps1
+!CreateSoundPack.ps1
+!RemoveSounds.ps1
+!build.ps1
+motor_sounds/*
+!motor_sounds/kml.msep
 !motor_sounds/kml-MTR.zip
 !motor_sounds/loop.ogg
 !motor_sounds/opdr.ogg
