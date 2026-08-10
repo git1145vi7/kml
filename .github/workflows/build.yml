@@ -27,6 +27,17 @@ on:
         required: false
         default: ""
 
+      # 新增：Release 类型开关
+      release_type:
+        name: Release type
+        description: "Prerelease (draft + pre-release) or full release"
+        required: true
+        default: "prerelease"
+        type: choice
+        options:
+          - prerelease
+          - release
+
 
 jobs:
 
@@ -57,7 +68,6 @@ jobs:
 
         $params = @{}
 
-
         switch ("${{ inputs.mode }}") {
 
           "low" {
@@ -70,23 +80,23 @@ jobs:
 
         }
 
-
         if ("${{ inputs.name }}" -ne "") {
           $params["n"] = "${{ inputs.name }}"
         }
-
 
         if ("${{ inputs.version }}" -ne "") {
           $params["v"] = "${{ inputs.version }}"
         }
 
+        # 根据 release_type 决定是否添加 -r
+        if ("${{ inputs.release_type }}" -eq "release") {
+          $params["r"] = $true
+        }
 
         Write-Host "Build parameters:"
         $params | Format-Table
 
-
         .\build.ps1 @params
-
 
 
     - name: Check packages
@@ -102,7 +112,6 @@ jobs:
         $zips | ForEach-Object {
           Write-Host $_.Name
         }
-
 
 
     - name: Generate release tag
@@ -121,11 +130,9 @@ jobs:
 
         }
 
-
         echo "tag=$tag" >> $env:GITHUB_OUTPUT
 
         Write-Host "Release tag: $tag"
-
 
 
     - name: Create Draft Release
@@ -139,11 +146,13 @@ jobs:
 
         draft: true
 
+        # 根据 release_type 设置 prerelease
+        prerelease: ${{ inputs.release_type == 'prerelease' }}
+
         generate_release_notes: true
 
         files: |
           *.zip
-
 
       env:
 
