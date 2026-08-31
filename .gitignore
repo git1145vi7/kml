@@ -1,6 +1,7 @@
 *.lnk
 *.zip
 *.ps1
+.local
 !AddSounds.ps1
 !CreateSoundPack.ps1
 !RemoveSounds.ps1
@@ -12,6 +13,7 @@ motor_sounds/*
 !motor_sounds/opdr.ogg
 !motor_sounds/clsdr.ogg
 resourcepack/assets/mtr/sounds
+resourcepack/assets/mtr/sounds.json
 resourcepack/assets/mtr/kmlr.bbmodel
 resourcepack/assets/mtr/kmllcdstr.bbmodel
 resourcepack/pack.mcmeta
