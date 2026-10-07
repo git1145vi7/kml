@@ -6,9 +6,9 @@
 !CreateSoundPack.ps1
 !RemoveSounds.ps1
 !build.ps1
+!Export-MsepToMtr.ps1
 motor_sounds/*
 !motor_sounds/kml.msep
-!motor_sounds/kml-MTR.zip
 !motor_sounds/loop.ogg
 !motor_sounds/opdr.ogg
 !motor_sounds/clsdr.ogg
