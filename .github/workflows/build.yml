@@ -61,6 +61,29 @@ jobs:
       run: |
         Remove-Item *.zip -Force -ErrorAction SilentlyContinue
 
+    - name: Check and install ffmpeg
+      shell: pwsh
+      run: |
+        $ffmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue
+
+        if ($ffmpeg) {
+          Write-Host "ffmpeg already available: $($ffmpeg.Source)"
+          ffmpeg -version | Select-Object -First 1
+        } else {
+          Write-Host "ffmpeg not found, installing via Chocolatey..."
+          choco install ffmpeg -y --no-progress
+
+          # 刷新当前会话的 PATH（choco 装完后当前会话不会自动更新）
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+          $ffmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue
+          if (-not $ffmpeg) {
+            throw "ffmpeg installation failed or not found in PATH after install."
+          }
+
+          Write-Host "ffmpeg installed: $($ffmpeg.Source)"
+          ffmpeg -version | Select-Object -First 1
+        }
 
     - name: Run build.ps1
       shell: pwsh
