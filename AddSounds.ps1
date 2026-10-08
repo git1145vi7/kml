@@ -2,6 +2,8 @@
 $root = $PSScriptRoot
 if (-not $root) { $root = Get-Location }
 
+& $root/Export-MsepToMtr.ps1 $root/motor_sounds/kml.msep
+
 # 1. Check if motor_sounds\kml-MTR.zip exists
 $zipPath = Join-Path $root "motor_sounds\kml-MTR.zip"
 if (-not (Test-Path $zipPath)) {
@@ -13,8 +15,6 @@ if (-not (Test-Path $zipPath)) {
 $assetsMtr = Join-Path $root "resourcepack\assets\mtr"
 $soundsFolder = Join-Path $assetsMtr "sounds"
 $kmlSoundsFolder = Join-Path $soundsFolder "kml"   # target for ogg files and sound.cfg
-
-& $root/Export-MsepToMtr.ps1 $root/motor_sounds/kml.msep
 
 # 2. Delete old sounds folder if exists
 if (Test-Path $soundsFolder) {
