@@ -14,7 +14,7 @@
 .PARAMETER n
     Custom pack name (supports Unicode). If specified, overrides version prefix.
 .PARAMETER r
-    Release mode - do not add "(预览版)" prefix.
+    Release mode.
 .PARAMETER h
     Show help.
 #>
@@ -33,11 +33,11 @@ param(
 )
 
 # =========================
-# USER CUSTOMIZABLE（改这里）
+# USER CUSTOMIZABLE
 # =========================
-$packDescriptionBase = "仅支持mtr4+ 作者：Copilot_Q29waW（Bilibili)"      # 基础描述，可改
+$packDescriptionBase = "仅支持mtr4+ 作者：Copilot_Q29waW（Bilibili)"
 $extraMetadata = @{
-    address = "https://github.com/git1145vi7/kml"                  # 自定义额外字段，可改
+    address = "https://github.com/git1145vi7/kml"
 }
 # =========================
 
@@ -59,13 +59,12 @@ OPTIONS:
     -l          Enable low-poly optimization
     -la         Build both normal + optimized
     -v <ver>    Version tag (e.g. 1.0, 1.1-Pre)
-    -n <name>   Custom pack name (Unicode supported)
-    -r          Release mode (no "预览版" prefix)
+    -n <name>   Custom pack name
+    -r          Release mode
     -h          Show help
 
 NOTES:
-    - Requires PowerShell 5+
-    - Cross-platform (Windows / Linux / macOS)
+    - Requires PowerShell 5+ and ffmpeg
 "@ | Write-Host
 }
 
@@ -120,7 +119,7 @@ function New-Zip($sourceDir, $zipPath) {
 function Get-BaseName {
     if ($n -and $v) { return "${n}_v${v}" }
     if ($n) { return $n }
-    if ($v) { return "v$v" }          # ← 这里改了
+    if ($v) { return "v$v" }
     return Get-Date -Format "yyyyMMdd-HHmmss"
 }
 
