@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     kml MTR mod ResourcePack Build CLI
 .DESCRIPTION
@@ -17,6 +17,8 @@
     Release mode.
 .PARAMETER h
     Show help.
+.PARAMETER d
+    Skip zip package creation.
 #>
 
 [CmdletBinding()]
@@ -29,7 +31,8 @@ param(
     [string]$v,
     [string]$n,
     [switch]$h,
-    [switch]$r
+    [switch]$r,
+    [switch]$d
 )
 
 # =========================
@@ -62,6 +65,7 @@ OPTIONS:
     -n <name>   Custom pack name
     -r          Release mode
     -h          Show help
+    -d          Skip zip package creation
 
 NOTES:
     - Requires PowerShell 5+ and ffmpeg
@@ -79,7 +83,7 @@ if ($h -or $Command -eq "help") {
 # =========================
 # UNKNOWN PARAM GUARD
 # =========================
-$valid = @("l","la","v","n","h","r")
+$valid = @("l","la","v","n","h","r","d")
 foreach ($a in $args) {
     if ($a -match "^-([a-zA-Z]+)") {
         if ($matches[1] -notin $valid) {
@@ -96,9 +100,9 @@ foreach ($a in $args) {
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptDir
 
-$removeScript = Join-Path $scriptDir "Remove-BBModelTexture.ps1"
-$lowPolyScript = Join-Path $scriptDir "CreateLowPolyPack.ps1"
-$addSoundsScript = Join-Path $scriptDir "AddSounds.ps1"
+$removeScript = Join-Path $scriptDir "script\Remove-BBModelTexture.ps1"
+$lowPolyScript = Join-Path $scriptDir "script\CreateLowPolyPack.ps1"
+$addSoundsScript = Join-Path $scriptDir "script\AddSounds.ps1"
 
 $packDir = Join-Path $scriptDir "resourcepack"
 
@@ -205,7 +209,7 @@ function Run-Build {
     if ($la) {
         Write-Host "Building normal version..."
         Update-PackMcmeta -isOptimized $false
-        ZipPack $name
+        if (-not $d) { ZipPack $name }
 
         Write-Host "Applying low-poly optimization..."
         & $lowPolyScript `
@@ -214,7 +218,7 @@ function Run-Build {
 
         Write-Host "Building optimized version..."
         Update-PackMcmeta -isOptimized $true
-        ZipPack ($name + "-Optimized")
+        if (-not $d) { ZipPack ($name + "-Optimized") }
     }
     elseif ($l) {
         Write-Host "Applying low-poly optimization..."
@@ -224,12 +228,12 @@ function Run-Build {
 
         Write-Host "Building optimized version..."
         Update-PackMcmeta -isOptimized $true
-        ZipPack ($name + "-Optimized")
+        if (-not $d) { ZipPack ($name + "-Optimized") }
     }
     else {
         Write-Host "Building normal version..."
         Update-PackMcmeta -isOptimized $false
-        ZipPack $name
+        if (-not $d) { ZipPack $name }
     }
 
     Write-Host "Done."

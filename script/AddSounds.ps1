@@ -1,8 +1,10 @@
-﻿# Set root directory to script location
+# Set root directory to script location
 $root = $PSScriptRoot
 if (-not $root) { $root = Get-Location }
+# 脚本移入 script/ 后，项目根目录是 script/ 的父目录
+$root = Split-Path -Parent $root
 
-& $root/Export-MsepToMtr.ps1 $root/motor_sounds/kml.msep
+& $root/script/Export-MsepToMtr.ps1 $root/motor_sounds/kml.msep
 
 # 1. Check if motor_sounds\kml-MTR.zip exists
 $zipPath = Join-Path $root "motor_sounds\kml-MTR.zip"
