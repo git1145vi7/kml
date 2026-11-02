@@ -2,11 +2,8 @@
 *.zip
 *.ps1
 .local
-!AddSounds.ps1
-!CreateSoundPack.ps1
-!RemoveSounds.ps1
 !build.ps1
-!Export-MsepToMtr.ps1
+!script/*
 motor_sounds/*
 !motor_sounds/kml.msep
 !motor_sounds/loop.ogg
