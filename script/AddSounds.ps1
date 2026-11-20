@@ -4,12 +4,12 @@ if (-not $root) { $root = Get-Location }
 # 脚本移入 script/ 后，项目根目录是 script/ 的父目录
 $root = Split-Path -Parent $root
 
-& $root/script/Export-MsepToMtr.ps1 $root/motor_sounds/kml.msep
+& $root/script/Export-MsepToMtr.ps1 $root/sound/kml.msep
 
-# 1. Check if motor_sounds\kml-MTR.zip exists
-$zipPath = Join-Path $root "motor_sounds\kml-MTR.zip"
+# 1. Check if sound\kml-MTR.zip exists
+$zipPath = Join-Path $root "sound\kml-MTR.zip"
 if (-not (Test-Path $zipPath)) {
-    Write-Host "ERROR: motor_sounds\kml-MTR.zip not found. Exiting." -ForegroundColor Red
+    Write-Host "ERROR: sound\kml-MTR.zip not found. Exiting." -ForegroundColor Red
     exit 1
 }
 
@@ -47,8 +47,8 @@ if (-not (Test-Path $kmlSoundsFolder)) {
     Write-Host "Created $kmlSoundsFolder"
 }
 
-# 5. Copy three .ogg files from motor_sounds to resourcepack\assets\mtr\sounds\kml
-$oggSourceDir = Join-Path $root "motor_sounds"
+# 5. Copy three .ogg files from sound to resourcepack\assets\mtr\sounds\kml
+$oggSourceDir = Join-Path $root "sound"
 $oggFiles = @("loop.ogg", "opdr.ogg", "clsdr.ogg")
 $missingOgg = $false
 foreach ($file in $oggFiles) {
